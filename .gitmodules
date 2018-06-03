@@ -1,3 +1,6 @@
 [submodule "libigl/external/Eigen"]
 	path = libigl/external/Eigen
 	url = https://github.com/libigl/eigen.git
+[submodule "libigl/external/CoMISO"]
+	path = libigl/external/CoMISO
+	url = https://github.com/libigl/CoMISo.git
