@@ -1,34 +1,38 @@
 #include <igl/opengl/glfw/Viewer.h>
+#include "remove_duplicate.h"
+#include <igl/readOBJ.h>
+#include <igl/writeOBJ.h>
+#include <igl/boundary_loop.h>
 
 int main(int argc, char *argv[])
 {
-  // Inline mesh of a cube
-  const Eigen::MatrixXd V= (Eigen::MatrixXd(8,3)<<
-    0.0,0.0,0.0,
-    0.0,0.0,1.0,
-    0.0,1.0,0.0,
-    0.0,1.0,1.0,
-    1.0,0.0,0.0,
-    1.0,0.0,1.0,
-    1.0,1.0,0.0,
-    1.0,1.0,1.0).finished();
-  const Eigen::MatrixXi F = (Eigen::MatrixXi(12,3)<<
-    1,7,5,
-    1,3,7,
-    1,4,3,
-    1,2,4,
-    3,8,7,
-    3,4,8,
-    5,7,8,
-    5,8,6,
-    1,5,6,
-    1,6,2,
-    2,6,8,
-    2,8,4).finished().array()-1;
-
+  
+  if(argc < 2){
+    std::cout<<"usage: ./example_bin path_to_file"<<std::endl;
+    return 0;
+  }
+  std::string fname = argv[1];
+  Eigen::MatrixXd V;
+  Eigen::MatrixXd uv;
+  Eigen::MatrixXi F;
+  Eigen::MatrixXi Fuv,FN;
+  Eigen::MatrixXd CN;
+  igl::readOBJ(fname,V,uv,CN,F, Fuv,FN);
+  std::vector<std::vector<int>> bd;
+  igl::boundary_loop(F,bd);
+  std::cout<<"before #bd("<<bd.size()<<")"<<std::endl;
+  Eigen::VectorXi I;
+  remove_duplicate(V,F,I);
+  std::cout<<"merging ... "<<std::endl;
+  bd.clear();
+  igl::boundary_loop(F,bd);
+  std::cout<<"result #bd("<<bd.size()<<")"<<std::endl;
   // Plot the mesh
-  igl::opengl::glfw::Viewer viewer;
-  viewer.data().set_mesh(V, F);
-  viewer.data().set_face_based(true);
-  viewer.launch();
+//   igl::opengl::glfw::Viewer viewer;
+//   viewer.data().set_mesh(V, F);
+//   viewer.data().set_face_based(true);
+//   viewer.launch();
+   // output mesh
+  std::string file = fname + "_merged.obj";
+  igl::writeOBJ(file,V,F,CN,FN,uv,F);
 }
